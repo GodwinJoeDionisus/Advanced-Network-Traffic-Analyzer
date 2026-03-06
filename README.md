@@ -221,3 +221,19 @@ Always ensure you have permission before analyzing network traffic.
 
 Cybersecurity Student  
 Focused on **Network Security, Threat Detection, and SOC Monitoring Systems**
+
+
+---
+
+## Dashboard Preview
+
+### Network Traffic Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### Security Alerts
+![Alerts](screenshots/alerts.png)
+
+### Live Traffic Monitoring
+![Traffic](screenshots/traffic.png)
+
+---
