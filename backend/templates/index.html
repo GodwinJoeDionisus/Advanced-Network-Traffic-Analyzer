@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Network Traffic Analyzer Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+font-family: Arial;
+background:#111;
+color:white;
+padding:20px;
+}
+
+h1{
+text-align:center;
+}
+
+.container{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+}
+
+.card{
+background:#1e1e1e;
+padding:20px;
+border-radius:10px;
+}
+
+.alert{
+background:#5c1a1a;
+padding:10px;
+margin:5px 0;
+border-radius:6px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+padding:8px;
+border-bottom:1px solid #444;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Network Traffic Analyzer Dashboard</h1>
+
+<div class="container">
+
+<div class="card">
+<h2>Protocol Distribution</h2>
+<canvas id="protocolChart"></canvas>
+</div>
+
+<div class="card">
+<h2>Top Source IPs</h2>
+<canvas id="ipChart"></canvas>
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>🚨 Security Alerts</h2>
+
+<div id="alerts"></div>
+
+</div>
+
+
+<div class="card">
+
+<h2>Live Traffic</h2>
+
+<table>
+
+<thead>
+<tr>
+<th>Time</th>
+<th>Source</th>
+<th>Destination</th>
+<th>Protocol</th>
+<th>Length</th>
+</tr>
+</thead>
+
+<tbody id="trafficTable"></tbody>
+
+</table>
+
+</div>
+
+
+<script>
+
+async function loadTraffic(){
+
+const res = await fetch("/api/traffic")
+const data = await res.json()
+
+const table = document.getElementById("trafficTable")
+table.innerHTML=""
+
+data.forEach(p=>{
+
+let row = `
+<tr>
+<td>${p.time}</td>
+<td>${p.src_ip}</td>
+<td>${p.dst_ip}</td>
+<td>${p.protocol}</td>
+<td>${p.length}</td>
+</tr>
+`
+
+table.innerHTML+=row
+
+})
+
+}
+
+
+async function loadProtocols(){
+
+const res = await fetch("/api/protocols")
+const data = await res.json()
+
+const labels = data.map(x=>x.protocol)
+const values = data.map(x=>x.count)
+
+new Chart(document.getElementById("protocolChart"),{
+
+type:"pie",
+
+data:{
+labels:labels,
+datasets:[{data:values}]
+}
+
+})
+
+}
+
+
+async function loadTopIPs(){
+
+const res = await fetch("/api/top_ips")
+const data = await res.json()
+
+const labels = data.map(x=>x.src_ip)
+const values = data.map(x=>x.count)
+
+new Chart(document.getElementById("ipChart"),{
+
+type:"bar",
+
+data:{
+labels:labels,
+datasets:[{
+label:"Packets",
+data:values
+}]
+}
+
+})
+
+}
+
+
+async function loadAlerts(){
+
+const res = await fetch("/api/alerts")
+const data = await res.json()
+
+const alertBox = document.getElementById("alerts")
+alertBox.innerHTML=""
+
+data.forEach(a=>{
+
+let alert = `
+<div class="alert">
+⚠ ${a.alert_type} from ${a.source_ip}
+<br>
+<small>${a.time}</small>
+</div>
+`
+
+alertBox.innerHTML += alert
+
+})
+
+}
+
+
+loadTraffic()
+loadProtocols()
+loadTopIPs()
+loadAlerts()
+
+setInterval(loadTraffic,3000)
+setInterval(loadAlerts,5000)
+
+</script>
+
+</body>
+</html>
